@@ -6,11 +6,11 @@ using System.Threading.Tasks;
 
 namespace View
 {
-    class Program
+    class UI
     {
-        static void Main(string[] args)
+        public static void Run()
         {
-            UI.Run();
+
         }
     }
 }
