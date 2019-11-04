@@ -21,22 +21,22 @@ namespace Control.Controllers
             string output = "ProductController\n\n";
             switch (command.ToLower())
             {
-                case "1.":
+                case "1":
                     output += Get(body);
                     break;
-                case "2.":
+                case "2":
                     output += GetAll();
                     break;
-                case "3.":
+                case "3":
                     output += Add(body);
                     break;
-                case "4.":
+                case "4":
                     output += Remove(body);
                     break;
-                case "5.":
+                case "5":
                     output += Change(body);
                     break;
-                case "0.":
+                case "0":
                     isActive = false;
                     break;
                 case null:
