@@ -41,9 +41,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Entities\Basket.cs" />
     <Compile Include="Entities\Dish.cs" />
     <Compile Include="Entities\Product.cs" />
     <Compile Include="Entities\WarehouseItem.cs" />
+    <Compile Include="Models\CashierModel.cs" />
     <Compile Include="Models\KitchenModel.cs" />
     <Compile Include="Models\ProductModel.cs" />
     <Compile Include="Models\WarehouseModel.cs" />
