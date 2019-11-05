@@ -5,12 +5,14 @@ using System.Text;
 using System.Threading.Tasks;
 using Model.Models;
 using Model.Entities;
+using Logging;
 
 namespace Control.Controllers
 {
     public class ProductController : BaseController
     {
         public ProductModel model;
+        private ILogger logger = LabLogger.GetLoggingService();
         public ProductController()
         {
             model = new ProductModel();
@@ -18,7 +20,8 @@ namespace Control.Controllers
         }
         public override string CheckInput(string body, string command)
         {
-            string output = "ProductController\n\n";
+            logger.Debug($"Received user input[Command:{command}, Body:{body}].");
+            string output = "ProductController\n\n(Body format: Id|Name|Energy|Proteins|Fats|Carbohydrates)\n\n";
             switch (command.ToLower())
             {
                 case "1":
@@ -42,6 +45,7 @@ namespace Control.Controllers
                 case null:
                     break;
                 default:
+                    logger.Debug("User called for non-existant function.");
                     output += "Unsupported command!";
                     break;
             }
@@ -53,6 +57,7 @@ namespace Control.Controllers
             string output = "";
             try
             {
+                logger.Info($"Attempt to add Product({input})...");
                 string[] parameters = input.Split('|');
                 Product result = model.Add(int.Parse(parameters[0]),
                                            parameters[1],
@@ -60,32 +65,36 @@ namespace Control.Controllers
                                            int.Parse(parameters[3]),
                                            int.Parse(parameters[4]),
                                            int.Parse(parameters[5]));
-                output = "Object was successfully created:\n" + "+---+--------------+------+-------+---+-------------+\n" +
-                       string.Format(Product.OutputPattern, "ID", "Name", "Energy", "Protein", "Fat", "Carbohydrates") +
-                       "+---+--------------+------+-------+---+-------------+\n" +
+                logger.Info($"Product({input}) was created successfully.");
+                output = "Object was successfully created:\n" + "+---+--------------+------+--------+----+-------------+\n" +
+                       string.Format(Product.OutputPattern, "ID", "Name", "Energy", "Proteins", "Fats", "Carbohydrates") +
+                       "+---+--------------+------+--------+----+-------------+\n" +
                        result.ToString();
             }
-            catch (FormatException)
+            catch (FormatException fe)
             {
+                logger.Error(fe, $"Cannot covert values.");
                 output = "Wrong input format.\nTry again.\n";
             }
-            catch (ProductException)
+            catch (ProductException pe)
             {
+                logger.Error(pe, $"Cannot create Product({input}).");
                 output = "Error occured while creating a product.\nTry again.\n";
             }
-            catch (Exception)
+            catch (Exception e)
             {
+                logger.Fatal(e, $"Unexpected error.");
                 output = "Unexpected error occured while creating a product.\nTry again.\n";
             }
             return output;
         }
-        //рівень помилок : Error, Fatal, Info, Debug
 
         protected override string Change(string input)
         {
             string output = "";
             try
             {
+                logger.Info($"Attempt to edit Product({input})...");
                 string[] parameters = input.Split('|');
                 Product result = model.Change(int.Parse(parameters[0]),
                                            parameters[1],
@@ -93,21 +102,25 @@ namespace Control.Controllers
                                            int.Parse(parameters[3]),
                                            int.Parse(parameters[4]),
                                            int.Parse(parameters[5]));
-                output = "Object was successfully changed:\n" + "+---+--------------+---+---+---+---+\n" +   // змінити по патерну
+                logger.Info($"Product({input}) was updated successfully.");
+                output = "Object was successfully changed:\n" + "+---+--------------+------+--------+----+-------------+\n" +
                        string.Format(Product.OutputPattern, "ID", "Name", "Energy", "Protein", "Fat", "Carbohydrates") +
-                       "+---+--------------+---+---+---+---+---+\n" +
+                       "+---+--------------+------+--------+----+-------------+\n" +
                        result.ToString();
             }
-            catch (FormatException)
+            catch (FormatException fe)
             {
+                logger.Error(fe, $"Cannot covert values.");
                 output = "Wrong input format.\nTry again.\n";
             }
-            catch (ProductException)
+            catch (ProductException pe)
             {
+                logger.Error(pe, $"Cannot edit Product({input}).");
                 output = "Error occured while editing a product.\nTry again.\n";
             }
-            catch (Exception)
+            catch (Exception e)
             {
+                logger.Fatal(e, $"Unexpected error.");
                 output = "Unexpected error occured while editing a product.\nTry again.\n";
             }
             return output;
@@ -118,22 +131,27 @@ namespace Control.Controllers
             string output = "";
             try
             {
+                logger.Info($"Attempt to retrieve Product({input})...");
                 Product result = model.Get(int.Parse(input));
-                output = $"Product#({input}):\n" + "+---+--------------+---+---+---+---+\n" +   // змінити по патерну
+                logger.Info($"Product({input}) was retrieved successfully.");
+                output = $"Product#({input}):\n" + "+---+--------------+------+--------+----+-------------+\n" +
                        string.Format(Product.OutputPattern, "ID", "Name", "Energy", "Protein", "Fat", "Carbohydrates") +
-                       "+---+--------------+---+---+---+---+---+\n" +
+                       "+---+--------------+------+--------+----+-------------+\n" +
                        result.ToString();
             }
-            catch (FormatException)
+            catch (FormatException fe)
             {
+                logger.Error(fe, $"Cannot covert values.");
                 output = "Wrong input format.\nTry again.\n";
             }
-            catch (ProductException)
+            catch (ProductException pe)
             {
+                logger.Error(pe, $"Cannot retrieve Product({input}).");
                 output = "Error occured while retrieving a product.\nTry again.\n";
             }
-            catch (Exception)
+            catch (Exception e)
             {
+                logger.Fatal(e, $"Unexpected error.");
                 output = "Unexpected error occured while retrieving a product.\nTry again.\n";
             }
             return output;
@@ -144,10 +162,12 @@ namespace Control.Controllers
             string output = "";
             try
             {
+                logger.Info($"Attempt to retrieve Products...");
                 List<Product> result = model.GetAll();
-                output = "Products:\n" + "+---+--------------+---+---+---+---+\n" +
+                logger.Info($"Products were retrieved successfully.");
+                output = "Products:\n" + "+---+--------------+------+--------+----+-------------+\n" +
                        string.Format(Product.OutputPattern, "ID", "Name", "Energy", "Protein", "Fat", "Carbohydrates") +
-                       "+---+--------------+---+---+---+---+---+\n";
+                       "+---+--------------+------+--------+----+-------------+\n";
 
                 foreach (var p in result)
                 {
@@ -155,12 +175,14 @@ namespace Control.Controllers
                 }
 
             }
-            catch (ProductException)
+            catch (ProductException pe)
             {
+                logger.Error(pe, $"Cannot retrieve Products.");
                 output = "Error occured while retreiving products.\nTry again.\n";
             }
-            catch (Exception)
+            catch (Exception e)
             {
+                logger.Fatal(e, $"Unexpected error.");
                 output = "Unexpected error occured while retrieving products.\nTry again.\n";
             }
             return output;
@@ -171,22 +193,27 @@ namespace Control.Controllers
             string output = "";
             try
             {
+                logger.Info($"Attempt to remove Product({input})...");
                 Product result = model.Remove(int.Parse(input));
-                output = $"Product#({input}):\n" + "+---+--------------+---+---+---+---+\n" +
+                logger.Info($"Product({input}) was removed successfully.");
+                output = $"Product#({input}):\n" + "+---+--------------+------+--------+----+-------------+\n" +
                        string.Format(Product.OutputPattern, "ID", "Name", "Energy", "Protein", "Fat", "Carbohydrates") +
-                       "+---+--------------+---+---+---+---+---+\n" +
+                       "+---+--------------+------+--------+----+-------------+\n" +
                        result.ToString();
             }
-            catch (FormatException)
+            catch (FormatException fe)
             {
+                logger.Error(fe, $"Cannot covert values.");
                 output = "Wrong input format.\nTry again.\n";
             }
-            catch (ProductException)
+            catch (ProductException pe)
             {
+                logger.Error(pe, $"Cannot remove Product({input}).");
                 output = "Error occured while removing a product.\nTry again.\n";
             }
-            catch (Exception)
+            catch (Exception e)
             {
+                logger.Fatal(e, $"Unexpected error.");
                 output = "Unexpected error occured while removing a product.\nTry again.\n";
             }
             return output;
