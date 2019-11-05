@@ -10,7 +10,7 @@ namespace View
     {
         static void Main(string[] args)
         {
-            UI.Run();
+            new UI().Run();
         }
     }
 }
