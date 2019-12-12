@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Control.Controllers
 {
-    public abstract class BaseController
+    public abstract class BaseController : IController
     {
         public bool isActive { get; protected set; }
         protected abstract string Add(string input);
@@ -17,12 +17,7 @@ namespace Control.Controllers
         protected abstract string GetAll();
         public virtual string GetCommands()
         {
-            return "\n1. Get item by Id;" +
-                   "\n2. Get all items;" +
-                   "\n3. Add new item;" +
-                   "\n4. Remove item by Id;" +
-                   "\n5. Edit item;\n" +
-                   "\n0. Return to home screen.\n";
+            return Globalization.UIGlobalization.ObjectGetCommands;
         }
     }
 }
