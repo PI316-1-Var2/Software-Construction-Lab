@@ -1,0 +1,15 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using Model.Entities;
+
+namespace Model.Interfaces
+{
+    public interface IProductRepository : IRepository<Product>
+    {
+        new Product Get(int id);
+        new IEnumerable<Product> GetAll();
+    }
+}
