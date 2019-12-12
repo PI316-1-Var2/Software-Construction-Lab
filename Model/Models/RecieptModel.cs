@@ -9,101 +9,88 @@ namespace Model.Models
 {
     public class RecieptModel
     {
-        private List<Reciept> reciepts;
-        public RecieptModel()
+        private readonly UnitOfWork unitOfWork;
+        public RecieptModel(string connection)
         {
-            reciepts = new List<Reciept>();
+            unitOfWork = new UnitOfWork(connection);
         }
-        public Reciept Add(int ID, string name, int quantity, double price, string name_cus, DateTime date_order)
-        {
-            try
-            {
-                Reciept ci = new Reciept(ID, name, quantity, price, name_cus, date_order);
-                reciepts.Add(ci);
-                return ci;
-            }
-            catch
-            {
-                throw new RecieptException();
-            }
-        }
-        public Reciept Change(int ID, string name, int quantity, double price, string customername, DateTime date)
-        {
-            try
-            {
-                Reciept ci = reciepts.Find(s => s.ID == ID);
-                if (ci != null)
-                {
-                    ci.Name = name;
-                    ci.Quantity = quantity;
-                    ci.Price = price;
-                    ci.CustomerName = customername;
-                    ci.Date = date;
-                }
-                return ci;
-            }
-            catch
-            {
-                throw new RecieptException();
-            }
-        }
-        public Reciept Remove(int ID)
-        {
-            try
-            {
-                Reciept ch = reciepts.Find(s => s.ID == ID);
-                reciepts.Remove(ch);
-                return ch;
-            }
-            catch
-            {
-                throw new RecieptException();
-            }
 
-        }
-        public Reciept Get(int ID)
+        public Reciept Add(int dishId, int quantity, int customerId, DateTime date_order)
         {
-            try
+            Dish dish = unitOfWork.Dishes.Get(dishId) ?? throw new ArgumentNullException("Incorrect dish Id!");
+            Visitor vis = unitOfWork.Visitors.Get(customerId) ?? throw new ArgumentNullException("Incorrect customer Id!");
+            Reciept r = new Reciept
             {
-                return reciepts.Find(s => s.ID == ID);
-            }
-            catch
-            {
-                throw new RecieptException();
-            }
+                User = vis,
+                DishItem = dish,
+                Date_Order = date_order,
+                Quantity = quantity
+            };
+            unitOfWork.Reciepts.Add(r);
+            unitOfWork.Complete();
+            return r;
         }
+
+        public Reciept Change(int id, int dishId, int quantity, int customerId, DateTime date_order)
+        {
+            Reciept r = unitOfWork.Reciepts.Get(id) ?? throw new ArgumentNullException("Incoorect ID!");
+            Dish dish = unitOfWork.Dishes.Get(dishId) ?? throw new ArgumentNullException("Incorrect dish ID!");
+            Visitor vis = unitOfWork.Visitors.Get(customerId) ?? throw new ArgumentNullException("Incorrect visitor ID!");
+            r.DishItem = dish;
+            r.Quantity = quantity;
+            r.User = vis;
+            r.Date_Order = date_order;
+            unitOfWork.Complete();
+            return r;
+        }
+
+        public Reciept Remove(int id)
+        {
+            Reciept ch = unitOfWork.Reciepts.Get(id) ?? throw new ArgumentOutOfRangeException("Incorrect ID!");
+            unitOfWork.Reciepts.Remove(id);
+            unitOfWork.Complete();
+            return ch;
+        }
+        public Reciept Get(int id)
+        {
+            var r = unitOfWork.Reciepts.Get(id) ?? throw new ArgumentOutOfRangeException("Incorrect ID!");
+            var dish = unitOfWork.Dishes.Get(r.DishItem.ID);
+            r.DishItem = dish;
+            return r;
+        }
+
         public List<Reciept> GetAll()
         {
-            try
+            var list = unitOfWork.Reciepts.GetAll().ToList();
+            foreach (var r in list)
             {
-                return reciepts;
+                var dish = unitOfWork.Dishes.Get(r.DishItem.ID);
+                r.DishItem = dish;
             }
-            catch
-            {
-                throw new RecieptException();
-            }
+            return list;
         }
 
         public List<Reciept> GetbyDate(int days)
         {
-            try
+            TimeSpan time = new TimeSpan(days, 0, 0, 0);
+            var list = GetAll().Where(r => DateTime.Now - r.Date_Order <= time).ToList();
+            foreach (var r in list)
             {
-                List<Reciept> items = new List<Reciept>();
-                TimeSpan time = new TimeSpan(days, 0, 0, 0);
-                foreach (var c in reciepts)
-                {
-                    if (DateTime.Now - c.Date <= time)
-                    {
-                        items.Add(c);
-                    }
-                }
-                return items;
+                var dish = unitOfWork.Dishes.Get(r.DishItem.ID);
+                r.DishItem = dish;
+            }
+            return list;
+        }
 
-            }
-            catch
+        public List<Reciept> CreateReciept(int customerId, DateTime order_datetime)
+        {
+            var list = GetAll().Where(r => r.User.ID == customerId && r.Date_Order == order_datetime).ToList();
+            foreach (var r in list)
             {
-                throw new RecieptException();
+                var dish = unitOfWork.Dishes.Get(r.DishItem.ID);
+                r.DishItem = dish;
             }
+            return list;
         }
     }
 }

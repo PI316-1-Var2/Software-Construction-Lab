@@ -3,44 +3,29 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Model.Entities
 {
     public class Reciept
     {
-        public int ID;
-        public string Name;
-        public int Quantity;
-        public double Price;
-        public string CustomerName;
-        public DateTime Date;
-        public const string OutputPattern = "|{0,-3}|{1,-21}|{2,-8}|{3,-9}|{4,-15}|{5,-10}|\n";
+        [Key]
+        public int ID { get; set; }
 
-        public Reciept(int id, string name, int quantity, double price, string customername, DateTime date)
-        {
-            ID = id;
-            Name = name;
-            Quantity = quantity;
-            Price = price;
-            CustomerName = customername;
-            Date = date;
-        }
-        public override string ToString()
-        {
-            return string.Format(OutputPattern, ID, Name, Quantity, Price, CustomerName, Date.ToString()) + "+---+---------------------+--------+---------+---------------+----------+\n";
-        }
-    }
+        [Required]
+        public Dish DishItem { get; set; }
 
-    public class RecieptException : Exception
-    {
-        public RecieptException() : base()
-        {
-        }
-        public RecieptException(string message) : base(message)
-        {
-        }
-        public RecieptException(string message, Exception innerException) : base(message, innerException)
-        {
-        }
+        [Required]
+        public int Quantity { get; set; }
+
+        [Required]
+        public double Price { get => Quantity * DishItem.Price; }
+
+        [Required]
+        public Visitor User { get; set; }
+
+        [Required, Column(TypeName = "SMALLDATETIME"), Range(typeof(DateTime), "1/1/1901", "20/4/2069")]
+        public DateTime Date_Order { get; set; }
     }
 }
